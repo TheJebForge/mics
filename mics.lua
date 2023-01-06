@@ -7,6 +7,8 @@ function printError(...)
     term.setTextColor(colors.white)
 end
 
+layoutsFolder = "mics/src/layouts/"
+
 -- Initialization step
 term.clear()
 term.setCursorPos(1, 1)
@@ -71,7 +73,6 @@ local inv = require("src.inv")
 
 print("Indexing inventories...")
 inv.refresh()
-sleep(0.5)
 
 -- Actually starting processes
 parallel.waitForAny(

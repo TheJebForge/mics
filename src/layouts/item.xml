@@ -1,0 +1,2 @@
+<label id="name" anchor="topLeft" text="name" fg="white"/>
+<label x="parent.w - 5" w="5" id="count" text="count" fg="white"/>

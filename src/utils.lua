@@ -31,7 +31,31 @@ end
 
 function export.startsWith(str, start)
     return string.sub(str, 1, string.len(start)) == start
- end
- 
+end
+
+local quatitySuffixes = {
+    "",
+    "k",
+    'M',
+    "B",
+    "T"
+}
+
+function export.round(num, numDecimalPlaces)
+    local mult = 10^(numDecimalPlaces or 0)
+    return math.floor(num * mult + 0.5) / mult
+  end
+
+function export.formatQuantity(quantity)
+    local level = 1
+    while (quantity / 1000) >= 1 do
+        level = level + 1
+        quantity = quantity / 1000
+    end
+
+    local rounded = export.round(quantity, 1)
+
+    return tostring(rounded) .. (quatitySuffixes[level] or "??")
+end
 
 return export

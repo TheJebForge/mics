@@ -201,6 +201,43 @@ function export.pushItems(itemID, count, target, targetSlot)
     return pushItems(itemID, count, method)
 end
 
+local dispensing = false
+
+function export.dispenseItems(itemID, count)
+    expect(1, itemID, "string")
+    expect(2, count, "number")
+
+    local item = invCache[itemID]
+
+    if item then
+        dispensing = true
+        local totalPushed = 0
+
+        while count > 0 do
+            local pushed = export.pushItems(itemID, math.min(item.maxCount, count), devices.self, 1)
+
+            count = count - pushed
+            totalPushed = totalPushed + pushed
+
+            if pushed > 0 then
+                if turtle.getSelectedSlot() ~= 1 then
+                    turtle.select(1)
+                end
+
+                turtle.drop()
+            else
+                dispensing = false
+                return totalPushed, "Not enough item"
+            end
+        end
+
+        dispensing = false
+        return totalPushed
+    else
+        return 0, "Item not found"
+    end
+end
+
 local function pullItems(count, infoMethod, pullMethod)
     local item = infoMethod() or {}
     local itemID = export.formatItemID(item)
@@ -305,7 +342,7 @@ function export.pullItems(source, sourceSlot, count)
 
     if source == devices.self then
         infoMethod = function()
-            return turtle.getItemDetail(sourceSlot)
+            return turtle.getItemDetail(sourceSlot, true)
         end
     elseif source == "introspection" then
         local manipulator = devices.getIntrospectionManipulator()
@@ -353,6 +390,38 @@ function export.getItemCount(itemID)
         return invCache[itemID].count
     else
         return 0
+    end
+end
+
+local function getDisplayName(item)
+    if item then
+        if item.enchantments then
+            local name = ""
+
+            if item.enchantments[1] and item.enchantments[1].displayName then
+                name = item.enchantments[1].displayName
+            end
+
+            local otherEnchantments = #item.enchantments - 1
+
+            if otherEnchantments > 0 then
+                name = name .. " + " .. otherEnchantments
+            end
+
+            return name
+        end
+
+        return item.displayName or "Missing"
+    else
+        return "Missing"
+    end
+end
+
+function export.getItemName(itemIDorItem)
+    if type(itemIDorItem) == "string" then
+        return getDisplayName(invCache[itemIDorItem])
+    elseif type(itemIDorItem) == "table" then
+        return getDisplayName(itemIDorItem)
     end
 end
 
@@ -406,14 +475,26 @@ local function doOutputChests()
 end
 
 local function inventoryTick(event, timerID)
-    if timerID == invTimer and not refreshing then
-        doInputChests()
-        doOutputChests()
+    if timerID == invTimer then
+        if not refreshing then
+            doInputChests()
+            doOutputChests()
+        end
 
         invTimer = os.startTimer(config.inventory_tick_interval)
     end
 end
 
 events.listen("timer", inventoryTick)
+
+events.listen("turtle_inventory", function()
+    if not dispensing then
+        for i=1, 16 do
+            if turtle.getItemDetail(i) then
+                export.pullItems(devices.self, i, 100)
+            end
+        end
+    end
+end)
 
 return export

@@ -3,39 +3,33 @@
     <item><text>Storage</text></item>
     <item><text>Monitor</text></item>
     <item><text>Settings</text></item>
+    <item><text>Logs</text></item>
 </menubar>
 
 <frame id="rootFrame" x="1" y="2" width="parent.w" height="parent.h" bg="lightGray">
     <frame x="1" y="1" width="parent.w" height="parent.h" bg="lightGray">
-        <input id="searchField" default="Search..." x="1" y="1" width="parent.w - 5" bg="lightGray"/>
-        <dropdown id="sortMethod" x="parent.w - 4" y="1" width="5" bg="lightGray">
+        <input id="searchField" default="Search..." x="1" y="1" width="parent.w - 7" bg="lightGray"/>
+        <dropdown id="sortMethod" x="parent.w - 6" y="1" width="5" bg="lightGray" zIndex="5">
             <item><text>ID</text></item>
             <item><text>Name</text></item>
             <item><text>Qty</text></item>
         </dropdown>
-        <frame x="1" y="2" width="parent.w" height="parent.h - 2" bg="gray" scrollable="true">
-            <label x="1" y="1" width="parent.w" text="kekw1"/>
-            <label x="1" y="2" width="parent.w" text="kekw2"/>
-            <label x="1" y="3" width="parent.w" text="kekw3"/>
-            <label x="1" y="4" width="parent.w" text="kekw4"/>
-            <label x="1" y="5" width="parent.w" text="kekw5"/>
-            <label x="1" y="6" width="parent.w" text="kekw6"/>
-            <label x="1" y="7" width="parent.w" text="kekw7"/>
-            <label x="1" y="8" width="parent.w" text="kekw8"/>
-            <label x="1" y="9" width="parent.w" text="kekw9"/>
-            <label x="1" y="10" width="parent.w" text="kekw10"/>
-            <label x="1" y="11" width="parent.w" text="kekw11"/>
-            <label x="1" y="12" width="parent.w" text="kekw12"/>
-            <label x="1" y="13" width="parent.w" text="kekw13"/>
-            <label x="1" y="14" width="parent.w" text="kekw14"/>
-            <label x="1" y="15" width="parent.w" text="kekw15"/>
-            <label x="1" y="16" width="parent.w" text="kekw16"/>
+        <button text="R" x="parent.w" y="1" width="1" height="1" onClick="refreshInv" bg="lightGray"/>
+        <frame id="itemList" x="1" y="2" width="parent.w + 1" height="parent.h - 3" bg="gray" scrollable="true" zIndex="1">
+
         </frame>
+        <frame id="refreshScreen" x="1" y="2" width="parent.w" height="parent.h - 3" bg="gray" zIndex="2">
+            <label x="parent.w / 2 - self.w / 2" y="parent.h / 2 - self.h / 2 + 1" text="Indexing storage..." fg="white"/>
+        </frame>
+        <input id="countField" default="Count..." y="parent.h - 1" width="parent.w" bg="lightGray" type="number"/>
     </frame>
     <frame x="parent.w+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
         <label x="2" y="2" text="monitor text here lol"/>
     </frame>
     <frame x="parent.w*2+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
         <label x="2" y="2" text="settings menu!"/>
+    </frame>
+    <frame x="parent.w*3+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
+        <label x="2" y="2" text="logs here eventually"/>
     </frame>
 </frame>
