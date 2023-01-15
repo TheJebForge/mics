@@ -10,35 +10,61 @@ local export = {}
 
 local oldInvCache = {}
 local invCache = {}
+local tagCache = {}
 local refreshing = false
 
 function export.formatItemID(item)
     expect(1, item, "table")
 
-    return (item.name or "") .. ":" .. (item.nbt or "")
+    if item.nbt then
+        return (item.name or "") .. ":" .. (item.nbt or "")
+    else
+        return (item.name or "")
+    end
+end
+
+local function addTags(itemID, item)
+    if item.tags then
+        for tag, _ in pairs(item.tags) do
+            if tagCache[tag] then
+                tagCache[tag][itemID] = true
+            else
+                tagCache[tag] = {
+                    [itemID] = true
+                }
+            end
+        end
+    end
 end
 
 local function scanInventory(_, index, continue)
     continue = continue or true
     local name, inventory = index, devices.inventories[index]
 
-    if inventory then
-        for slot, item in pairs(inventory.list()) do
-            local itemID = export.formatItemID(item)
+    if inventory and inventory.list then
+        local list = inventory.list()
 
-            if invCache[itemID] then
-                invCache[itemID].count = invCache[itemID].count + item.count
-                if invCache[itemID].places[name] then
-                    invCache[itemID].places[name][slot] = item.count
+        if list then
+            for slot, item in pairs(list) do
+                local itemID = export.formatItemID(item)
+
+                if invCache[itemID] then
+                    invCache[itemID].count = invCache[itemID].count + item.count
+                    if invCache[itemID].places[name] then
+                        invCache[itemID].places[name][slot] = item.count
+                    else
+                        invCache[itemID].places[name] = { [slot] = item.count }
+                    end
                 else
-                    invCache[itemID].places[name] = { [slot] = item.count }
-                end
-            else
-                local detailedItem = inventory.getItemDetail(slot)
+                    local detailedItem = inventory.getItemDetail(slot)
 
-                detailedItem.places = { [name] = { [slot] = item.count } }
-                invCache[itemID] = detailedItem
+                    detailedItem.places = { [name] = { [slot] = item.count } }
+                    invCache[itemID] = detailedItem
+
+                    addTags(itemID, detailedItem)
+                end
             end
+            
         end
 
         if continue then
@@ -328,6 +354,7 @@ local function pullItems(count, infoMethod, pullMethod)
         events.queue("item_changed", itemID, item.count - totalPushed, item.count)
     else
         events.queue("item_added", itemID, item)
+        addTags(itemID, item)
     end
 
     if count > 0 then
@@ -379,6 +406,56 @@ function export.pullItems(source, sourceSlot, count)
     end
 
     return pullItems(count, infoMethod, pullMethod)
+end
+
+function export.findItemsByTag(tag)
+    local results = {}
+
+    if tagCache[tag] then
+        for id, _ in pairs(tagCache[tag]) do
+            local item = invCache[id]
+
+            if item then
+                results[id] = item.count
+            end
+        end
+    end
+
+    return results
+end
+
+function export.findCheapestItemByTag(tag)
+    local tagItems = export.findItemsByTag(tag)
+
+    local id, count = next(tagItems)
+    if id then
+        local maxID, maxCount = id, count
+
+        ---@diagnostic disable-next-line: redefined-local
+        for id, count in pairs(tagItems) do
+            if count > maxCount then
+                maxID, maxCount = id, count
+            end
+        end
+
+        return invCache[maxID]
+    end
+end
+
+function export.getMostCommonItemByTag(tag)
+    local items = export.findItemsByTag(tag)
+
+    if next(items) then
+        local maxItemID, maxItem = next(items)
+        
+        for itemID, item in pairs(items) do
+            if item.count > maxItem.count then
+                maxItemID, maxItem = itemID, item
+            end
+        end
+
+        return maxItemID, maxItem
+    end
 end
 
 function export.getItem(itemID)

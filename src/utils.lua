@@ -58,4 +58,20 @@ function export.formatQuantity(quantity)
     return tostring(rounded) .. (quatitySuffixes[level] or "??")
 end
 
+function export.yielder()
+    local yielder = {
+        lastYield = os.clock(),
+    }
+
+    function yielder.yield()
+        local clock = os.clock()
+
+        if clock - yielder.lastYield > 1 then
+            sleep(0)
+        end
+    end
+
+    return yielder
+end
+
 return export

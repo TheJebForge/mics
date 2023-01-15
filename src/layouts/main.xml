@@ -1,7 +1,7 @@
 <menubar id="rootMenu" x="2" y="1" width="parent.w - 2" height="1" bg="gray" scrollable="true"
     selectionBG="lightGray" selectionFG="black">
-    <item><text>Storage</text></item>
-    <item><text>Monitor</text></item>
+    <item><text>Inventory</text></item>
+    <item><text>Crafting</text></item>
     <item><text>Settings</text></item>
     <item><text>Logs</text></item>
 </menubar>
@@ -15,7 +15,7 @@
             <item><text>Qty</text></item>
         </dropdown>
         <button text="R" x="parent.w" y="1" width="1" height="1" onClick="refreshInv" bg="lightGray"/>
-        <frame id="itemList" x="1" y="2" width="parent.w + 1" height="parent.h - 3" bg="gray" scrollable="true" zIndex="1">
+        <frame id="itemList" x="1" y="2" width="parent.w + 1" height="parent.h - 3" bg="gray" scrollable="false" zIndex="1">
 
         </frame>
         <frame id="refreshScreen" x="1" y="2" width="parent.w" height="parent.h - 3" bg="gray" zIndex="2">
@@ -24,7 +24,12 @@
         <input id="countField" default="Count..." y="parent.h - 1" width="parent.w" bg="lightGray" type="number"/>
     </frame>
     <frame x="parent.w+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
-        <label x="2" y="2" text="monitor text here lol"/>
+        <input id="craftSearchField" default="Search..." x="1" y="1" width="parent.w - 3" bg="lightGray"/>
+        <button text="+" x="parent.w - 2" y="1" width="1" height="1" onClick="refreshCraft" bg="lightGray"/>
+        <button text="R" x="parent.w" y="1" width="1" height="1" onClick="refreshCraft" bg="lightGray"/>
+        <frame id="craftList" x="1" y="2" width="parent.w + 1" height="parent.h - 2" bg="gray" scrollable="false" zIndex="1">
+
+        </frame>
     </frame>
     <frame x="parent.w*2+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
         <label x="2" y="2" text="settings menu!"/>

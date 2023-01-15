@@ -4,6 +4,7 @@ local events = require("src.events")
 local devices = require("src.devices")
 local config = require("src.config")
 local inv = require("src.inv")
+local craft = require("src.craft")
 local utils = require("src.utils")
 
 local monitor, _ = next(devices.monitors)
@@ -13,11 +14,12 @@ basalt.setVariable("test", function()
 end)
 
 basalt.setVariable("refreshInv", inv.refresh)
+basalt.setVariable("refreshCraft", craft.refresh)
 
 local main = basalt.createFrame("main")
     :setBackground(colors.gray)
     :addLayout(layoutsFolder .. "main.xml")
-    --:setMonitor(monitor)
+    -- :setMonitor(monitor)
 
 local rootMenu = main:getDeepObject("rootMenu")
 local rootFrame = main:getDeepObject("rootFrame")
@@ -34,199 +36,344 @@ end)
 -- Inventory tab
 
 -- Inventory functionality
-local itemList = main:getDeepObject("itemList")
-local searchField = main:getDeepObject("searchField")
-local sortMethod = main:getDeepObject("sortMethod")
-local countField = main:getDeepObject("countField")
+do
+    local itemList = main:getDeepObject("itemList")
+    local searchField = main:getDeepObject("searchField")
+    local sortMethod = main:getDeepObject("sortMethod")
+    local countField = main:getDeepObject("countField")
 
-local uiInvCache = {}
+    local _, height = itemList:getSize()
 
-local function searchBasedSort(search, sortFunction)
-    return function(a, b)
-        local isSearch = search ~= ""
-        local aMatch = string.find(a.name:lower(), search)
-        local bMatch = string.find(b.name:lower(), search)
+    local uiInvCache = {}
+    local position = 0
+    local visibleCount = 0
 
-        if aMatch and not bMatch then
-            return true
-        elseif not aMatch and bMatch and isSearch then
-            return false
-        else
-            return sortFunction(a, b)
-        end
-    end
-end
+    local function updateItems()
+        for i = 1, height do
+            local index = i + position
+            local item = uiInvCache[index]
 
-local function applySortAndVisibility()
-    local method = config.sorting_method or 1
-    local search = searchField:getValue():lower()
-
-    if method == 1 then
-        table.sort(uiInvCache, searchBasedSort(search, function(a, b)
-            return a.id:lower() < b.id:lower()
-        end))
-    elseif method == 2 then
-        table.sort(uiInvCache, searchBasedSort(search, function(a, b)
-            return a.name:lower() < b.name:lower()
-        end))
-    elseif method == 3 then
-        table.sort(uiInvCache, searchBasedSort(search, function(a, b)
-            return b.count < a.count
-        end))
-    end
-
-    local visible = 0
-
-    for y, item in pairs(uiInvCache) do
-        local obj = itemList:getObject(item.id)
-
-        local visibility = true
-
-        if search ~= "" then
-            visibility = string.find(item.name:lower(), search) ~= nil
-        end
-
-        if obj then
-            local color = y % 2 == 0 and colors.white or colors.lightGray
-
-            obj:setPosition(1, y)
-
-            obj:getObject("name"):setForeground(color)
-            obj:getObject("count"):setForeground(color)
-
-            if visibility then
-                obj:show()
-                visible = visible + 1
-            else
-                obj:hide()
+            local name = ""
+            local quantity = ""
+            if item and item.visible then
+                name = item.name
+                quantity = utils.formatQuantity(item.count)
             end
-        end
-    end
 
-    local w, h = itemList:getSize()
-    itemList:setScrollAmount(math.max(0, visible - h))
-end
+            local itemFrame = itemList:getObject("y" .. i)
 
-local function addItem(itemID)
-    local row = #uiInvCache
-
-    local itemFrame = itemList:addFrame(itemID)
-
-    if itemFrame then
-        itemFrame:addLayout(layoutsFolder .. "item.xml")
-            :setBackground(colors.gray)
-            :setSize("parent.w", 1)
-            :setPosition(1, row)
-            :onClick(function()
-                inv.dispenseItems(itemID, tonumber(countField:getValue()) or 1)
-            end)
-
-        local name = inv.getItemName(itemID)
-        itemFrame:getObject("name")
-            :setText(name)
-
-        local count = inv.getItemCount(itemID)
-        
-        local quantity = utils.formatQuantity(count)
-        local quantityLen = string.len(quantity)
-        itemFrame:getObject("count")
-            :setText(quantity)
-            :setSize(quantityLen, 1)
-            :setPosition("parent.w - " .. quantityLen)
-
-        table.insert(uiInvCache, {
-            id = itemID,
-            count = count,
-            name = name,
-        })
-    end
-end
-
-local function removeItem(itemID)
-    for index, item in pairs(uiInvCache) do
-        if item.id == itemID then
-            itemList:removeObject(itemID)
-            table.remove(uiInvCache, index)
-        end
-    end
-end
-
-local function refresh()
-    -- Clearing old items
-    for i, item in pairs(uiInvCache) do
-        itemList:removeObject(item.id)
-        uiInvCache[i] = nil
-    end
-
-    -- Adding new items
-    for itemID, _ in pairs(inv.listItems()) do
-        addItem(itemID)
-    end
-end
-
--- Hiding item list when indexing is happening
-local refreshScreen = main:getDeepObject("refreshScreen")
-
-events.listen("inv_index_started", function()
-    itemList:disable()
-    itemList:hide()
-    refreshScreen:enable()
-    refreshScreen:show()
-end)
-
-events.listen("inv_index_done", function()
-    refresh()
-    applySortAndVisibility()
-    itemList:enable()
-    itemList:show()
-    refreshScreen:disable()
-    refreshScreen:hide()
-end)
-
-events.listen("item_added", function(_, itemID, _)
-    addItem(itemID)
-    applySortAndVisibility()
-end)
-
-events.listen("item_changed", function(_, itemID, _, newCount)
-    for index, item in pairs(uiInvCache) do
-        if item.id == itemID then
-            item.count = newCount
-
-            local itemFrame = itemList:getObject(item.id)
-            
             if itemFrame then
-                local quantity = utils.formatQuantity(item.count)
+                local color = index % 2 == 1 and colors.white or colors.lightGray
+
+                itemFrame:getObject("name")
+                    :setText(name)
+                    :setForeground(color)
+
                 local quantityLen = string.len(quantity)
                 itemFrame:getObject("count")
                     :setText(quantity)
                     :setSize(quantityLen, 1)
                     :setPosition("parent.w - " .. quantityLen)
+                    :setForeground(color)
+            end
+        end
+    end
+    
+    -- Populating item list with empty items
+    for i = 1, height do
+        itemList:addFrame("y"..i)
+            :addLayout(layoutsFolder .. "item.xml")
+            :setBackground(colors.gray)
+            :setSize("parent.w", 1)
+            :setPosition(1, i)
+            :onClick(function()
+                local index = i + position
+
+                if uiInvCache[index] then
+                    inv.dispenseItems(uiInvCache[index].id, tonumber(countField:getValue()) or 1)
+                end
+            end)
+    end
+
+    itemList:onScroll(function(list, ev, dir, x, y) 
+        local floor = math.max(0, visibleCount - height)
+        position = math.min(math.max(position + dir, 0), floor)
+        updateItems()
+    end)
+
+    local function searchBasedSort(search, sortFunction)
+        return function(a, b)
+            local isSearch = search ~= ""
+            local aMatch = string.find(a.name:lower(), search)
+            local bMatch = string.find(b.name:lower(), search)
+
+            if aMatch and not bMatch then
+                return true
+            elseif not aMatch and bMatch and isSearch then
+                return false
+            else
+                return sortFunction(a, b)
             end
         end
     end
 
-    applySortAndVisibility()
-end)
+    local function applySortAndVisibility()
+        local method = config.sorting_method or 1
+        local search = searchField:getValue():lower()
 
-events.listen("item_removed", function(_, itemID)
-    removeItem(itemID)
-    applySortAndVisibility()
-end)
+        if method == 1 then
+            table.sort(uiInvCache, searchBasedSort(search, function(a, b)
+                return a.id:lower() < b.id:lower()
+            end))
+        elseif method == 2 then
+            table.sort(uiInvCache, searchBasedSort(search, function(a, b)
+                return a.name:lower() < b.name:lower()
+            end))
+        elseif method == 3 then
+            table.sort(uiInvCache, searchBasedSort(search, function(a, b)
+                return b.count < a.count
+            end))
+        end
 
--- Making sure sort method is preserved
-sortMethod:selectItem(config.sorting_method or 1)
+        visibleCount = 0
 
--- Process sorting method
-sortMethod:onChange(function(self)
-    config.sorting_method = self:getItemIndex()
-    applySortAndVisibility()
-end)
+        for y, item in pairs(uiInvCache) do
+            local visibility = true
 
-searchField:onChange(function(self)
+            if search ~= "" then
+                visibility = string.find(item.name:lower(), search) ~= nil
+            end
+
+            if visibility then
+                visibleCount = visibleCount + 1
+            end
+
+            item.visible = visibility
+        end
+
+        updateItems()
+    end
+
+    local function addItem(itemID)
+        for _, item in pairs(uiInvCache) do
+            if item.id == itemID then
+                return
+            end
+        end
+    
+        local name = inv.getItemName(itemID)
+        local count = inv.getItemCount(itemID)
+
+        table.insert(uiInvCache, {
+            id = itemID,
+            count = count,
+            name = name,
+            visible = true,
+        })
+    end
+
+    local function removeItem(itemID)
+        for index, item in pairs(uiInvCache) do
+            if item.id == itemID then
+                table.remove(uiInvCache, index)
+            end
+        end
+    end
+
+    local function refresh()
+        uiInvCache = {}
+
+        -- Adding new items
+        for itemID, _ in pairs(inv.listItems()) do
+            addItem(itemID)
+        end
+    end
+
+    -- Hiding item list when indexing is happening
+    local refreshScreen = main:getDeepObject("refreshScreen")
+
+    events.listen("inv_index_started", function()
+        itemList:disable()
+        itemList:hide()
+        refreshScreen:enable()
+        refreshScreen:show()
+    end)
+
+    events.listen("inv_index_done", function()
+        refresh()
+        applySortAndVisibility()
+        itemList:enable()
+        itemList:show()
+        refreshScreen:disable()
+        refreshScreen:hide()
+    end)
+
+    events.listen("item_added", function(_, itemID, _)
+        addItem(itemID)
+        applySortAndVisibility()
+    end)
+
+    events.listen("item_changed", function(_, itemID, _, newCount)
+        for index, item in pairs(uiInvCache) do
+            if item.id == itemID then
+                item.count = newCount
+            end
+        end
+
+        applySortAndVisibility()
+    end)
+
+    events.listen("item_removed", function(_, itemID)
+        removeItem(itemID)
+        applySortAndVisibility()
+    end)
+
+    -- Making sure sort method is preserved
+    sortMethod:selectItem(config.sorting_method or 1)
+
+    -- Process sorting method
+    sortMethod:onChange(function(self)
+        config.sorting_method = self:getItemIndex()
+        applySortAndVisibility()
+    end)
+
+    searchField:onChange(function(self)
+        position = 0
+        applySortAndVisibility()
+    end)
+end
+
+-- Craft functionality
+do
+    local craftList = main:getDeepObject("craftList")
+    local searchField = main:getDeepObject("craftSearchField")
+
+    -- Populating item list with empty items
+    local _, height = craftList:getSize()
+
+    for i = 1, height do
+        local item = craftList:addFrame("y"..i)
+            :addLayout(layoutsFolder .. "item.xml")
+            :setBackground(colors.gray)
+            :setSize("parent.w", 1)
+            :setPosition(1, i)
+
+        item:getObject("count")
+            :setText("CRAFT")
+            :setSize(5, 1)
+            :setPosition("parent.w - " .. 5)
+    end
+
+    local uiCraftCache = {}
+    local position = 0
+    local visibleCount = 0
+
+    local function updateItems()
+        for i = 1, height do
+            local index = i + position
+            local item = uiCraftCache[index]
+
+            local name = ""
+            if item and item.visible then
+                name = item.name
+            end
+
+            local itemFrame = craftList:getObject("y" .. i)
+
+            if itemFrame then
+                local color = index % 2 == 1 and colors.white or colors.lightGray
+
+                itemFrame:getObject("name")
+                    :setText(name)
+                    :setForeground(color)
+
+                itemFrame:getObject("count")
+                    :setForeground(color)
+            end
+        end
+    end
+
+    craftList:onScroll(function(list, ev, dir, x, y) 
+        local floor = math.max(0, visibleCount - height)
+        position = math.min(math.max(position + dir, 0), floor)
+        updateItems()
+    end)
+
+    local function searchBasedSort(search)
+        return function(a, b)
+            local isSearch = search ~= ""
+            local aMatch = string.find(a.name:lower(), search)
+            local bMatch = string.find(b.name:lower(), search)
+
+            if aMatch and not bMatch then
+                return true
+            elseif not aMatch and bMatch and isSearch then
+                return false
+            else
+                return a.name:lower() < b.name:lower()
+            end
+        end
+    end
+
+    local function applySortAndVisibility()
+        local search = searchField:getValue():lower()
+
+        table.sort(uiCraftCache, searchBasedSort(search))
+
+        visibleCount = 0
+
+        for y, item in pairs(uiCraftCache) do
+            local visibility = true
+
+            if search ~= "" then
+                visibility = string.find(item.name:lower(), search) ~= nil
+            end
+
+            if visibility then
+                visibleCount = visibleCount + 1
+            end
+
+            item.visible = visibility
+        end
+
+        updateItems()
+    end
+
+    local function addItem(craftID)
+        for _, item in pairs(uiCraftCache) do
+            if item.id == craftID then
+                return
+            end
+        end
+
+        local name = craft.getRecipe(craftID).n
+
+        table.insert(uiCraftCache, {
+            id = craftID,
+            name = name,
+            visible = true,
+        })
+    end
+
+    local function refresh()
+        uiInvCache = {}
+
+        -- Adding new items
+        local yielder = utils.yielder()
+        for craftID, _ in pairs(craft.listCrafts()) do
+            addItem(craftID)
+            yielder.yield()
+        end
+    end
+
+    refresh()
     applySortAndVisibility()
-    itemList:setOffset(0, 0)
-end)
+
+    searchField:onChange(function(self)
+        position = 0
+        applySortAndVisibility()
+    end)
+end
 
 
 return basalt.autoUpdate

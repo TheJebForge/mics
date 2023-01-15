@@ -74,6 +74,25 @@ local inv = require("src.inv")
 print("Indexing inventories...")
 inv.refresh()
 
+events.listen("inv_index_done", function()
+    -- textutils.pagedPrint(
+    --     textutils.serialise(inv.listItems())
+    -- )
+end)
+
+print("Loading recipes...")
+local craft = require("src.craft")
+
+-- textutils.pagedPrint(
+--     textutils.serialize(
+--         craft.calculateCraft("minecraft:oak_planks", 64)
+--     )
+-- )
+
+events.listen("inv_index_done", function()
+    inv.pullItems("introspection", 1, 64)
+end)
+
 -- Actually starting processes
 parallel.waitForAny(
     events.processEvents,
