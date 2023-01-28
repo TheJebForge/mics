@@ -33,6 +33,26 @@ rootMenu:onChange(function(self)
     main:addAnimation():setObject(rootFrame):setAutoDestroy():offset(position,0,0.2):play()
 end)
 
+events.listen("key", function(ev, key, is_held)
+    if key == keys.tab and not is_held then
+        rootFrame:setFocus()
+
+        if selectedTab == 1 then
+            local invPane = rootFrame:getObject("invPane")
+            invPane:setFocus()
+
+            local searchField = main:getDeepObject("searchField")
+            local countField = main:getDeepObject("countField")
+
+            if not searchField:isFocused() then
+                searchField:setFocus()
+            else
+                countField:setFocus()
+            end
+        end
+    end
+end)
+
 -- Inventory tab
 
 -- Inventory functionality
@@ -41,6 +61,21 @@ do
     local searchField = main:getDeepObject("searchField")
     local sortMethod = main:getDeepObject("sortMethod")
     local countField = main:getDeepObject("countField")
+
+    local clearSearchField = main:getDeepObject("clearSearchField")
+    local clearCountField = main:getDeepObject("clearCountField")
+
+    clearSearchField:onClick(function(obj)
+        if obj:isVisible() then
+            searchField:setValue("")
+        end
+    end)
+
+    clearCountField:onClick(function(obj)
+        if obj:isVisible() then
+            countField:setValue("")
+        end
+    end)
 
     local _, height = itemList:getSize()
 
@@ -89,7 +124,7 @@ do
             :onClick(function()
                 local index = i + position
 
-                if uiInvCache[index] then
+                if uiInvCache[index] and uiInvCache[index].visible then
                     inv.dispenseItems(uiInvCache[index].id, tonumber(countField:getValue()) or 1)
                 end
             end)
@@ -238,8 +273,24 @@ do
     end)
 
     searchField:onChange(function(self)
+        if self:getValue() ~= "" then
+            self:setSize("parent.w - 9", "1")
+            clearSearchField:show()
+        else
+            self:setSize("parent.w - 7", "1")
+            clearSearchField:hide()
+        end
+
         position = 0
         applySortAndVisibility()
+    end)
+
+    countField:onChange(function(self)
+        if self:getValue() ~= "" then
+            clearCountField:show()
+        else
+            clearCountField:hide()
+        end
     end)
 end
 

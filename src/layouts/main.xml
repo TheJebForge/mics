@@ -7,8 +7,9 @@
 </menubar>
 
 <frame id="rootFrame" x="1" y="2" width="parent.w" height="parent.h" bg="lightGray">
-    <frame x="1" y="1" width="parent.w" height="parent.h" bg="lightGray">
+    <frame id="invPane" x="1" y="1" width="parent.w" height="parent.h" bg="lightGray">
         <input id="searchField" default="Search..." x="1" y="1" width="parent.w - 7" bg="lightGray"/>
+        <button id="clearSearchField" text="x" x="parent.w - 8" y="1" width="1" height="1" bg="lightGray" visible="false"/>
         <dropdown id="sortMethod" x="parent.w - 6" y="1" width="5" bg="lightGray" zIndex="5">
             <item><text>ID</text></item>
             <item><text>Name</text></item>
@@ -21,7 +22,8 @@
         <frame id="refreshScreen" x="1" y="2" width="parent.w" height="parent.h - 3" bg="gray" zIndex="2">
             <label x="parent.w / 2 - self.w / 2" y="parent.h / 2 - self.h / 2 + 1" text="Indexing storage..." fg="white"/>
         </frame>
-        <input id="countField" default="Count..." y="parent.h - 1" width="parent.w" bg="lightGray" type="number"/>
+        <input id="countField" default="Count..." y="parent.h - 1" width="parent.w - 1" bg="lightGray" type="number"/>
+        <button id="clearCountField" text="x" x="parent.w" y="parent.h - 1" width="1" height="1" bg="lightGray" visible="false"/>
     </frame>
     <frame x="parent.w+1" y="1" width="parent.w" height="parent.h" bg="lightGray">
         <label x="parent.w / 2 - self.w / 2" y="parent.h / 2 - self.h / 2 + 1" text="Soon TM" fg="gray"/>
