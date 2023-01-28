@@ -239,9 +239,17 @@ else
                         end
                     end
                 end
+
+                queue[#queue] = nil
             end
         end
     end
+
+    print("Updating local version...")
+
+    local localVersionFile = fs.open("mics/version", "w")
+    localVersionFile.write(versions.latest)
+    localVersionFile.close()
 end
 
 print("Done! Restarting...")
