@@ -38,7 +38,7 @@ else
     installer()
 end
 
-print("Device discovery report\n")
+print("\nDevice discovery report\n")
 
 local devices = require("src.devices")
 
@@ -97,6 +97,6 @@ inv.refresh()
 
 -- Actually starting processes
 parallel.waitForAny(
-    events.processEvents
-    --require("src.ui")
+    events.processEvents,
+    require("src.ui")
 )
