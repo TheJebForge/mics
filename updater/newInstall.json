@@ -21,6 +21,9 @@
         "src/utils.lua",
         "src/craft/init.lua",
         "src/layouts/item.xml",
-        "src/layouts/main.xml"
+        "src/layouts/main.xml",
+        "lib/basalt.lua",
+        "lib/semver.lua",
+        "lib/sha256.lua"
     ]
 }
