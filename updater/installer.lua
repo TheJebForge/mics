@@ -236,6 +236,9 @@ else
                 end
 
                 queue[#queue] = nil
+
+                localVersion = stringVersion
+                localVersionSemver = version
             end
         end
     end
