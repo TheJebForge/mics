@@ -3,7 +3,8 @@
     "versions": {
         "0.1.0": "663a3ad8e8f36e19b401e5682caec5e7d3c7cce6",
         "0.1.1": "c09079e3a26db164e10160c9d3c979743c3357ed",
-        "0.1.2": "100a0b81a075ca06c9cbc5888e5fd35732ab48dc"
+        "0.1.2": "100a0b81a075ca06c9cbc5888e5fd35732ab48dc",
+        "0.1.3": "dd56f310b3731bdf12f2de4febfbd28509e767d7"
     },
     "updates": {
         "0.1.1": {
