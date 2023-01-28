@@ -171,13 +171,8 @@ else
     local localVersionSemver = semver(localVersion)
     local latestVersionSemver = semver(versions.latest)
 
-    if localVersionSemver == latestVersionSemver then
+    if localVersionSemver >= latestVersionSemver then
         print("Up to date!")
-        return
-    end
-
-    if localVersionSemver > latestVersionSemver then
-        print("Local version is greater than GitHub...")
         return
     end
 
