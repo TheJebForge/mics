@@ -236,7 +236,7 @@
 
 -- export.refresh = loadRecipes
 
--- I've tried™ to make the crafting algorithm actually smart for 3 weeks, I'm giving up and just using AE2's crafting calculator
+-- I've tried? to make the crafting algorithm actually smart for 3 weeks, I'm giving up and just using AE2's crafting calculator
 -- because it was best one from my testing
 
 -- local function pickCheapestRecipe(itemID)

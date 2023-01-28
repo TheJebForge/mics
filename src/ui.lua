@@ -244,136 +244,142 @@ do
 end
 
 -- Craft functionality
-do
-    local craftList = main:getDeepObject("craftList")
-    local searchField = main:getDeepObject("craftSearchField")
+-- do
+--     local craftList = main:getDeepObject("craftList")
+--     local searchField = main:getDeepObject("craftSearchField")
 
-    -- Populating item list with empty items
-    local _, height = craftList:getSize()
+--     -- Populating item list with empty items
+--     local _, height = craftList:getSize()
 
-    for i = 1, height do
-        local item = craftList:addFrame("y"..i)
-            :addLayout(layoutsFolder .. "item.xml")
-            :setBackground(colors.gray)
-            :setSize("parent.w", 1)
-            :setPosition(1, i)
+--     for i = 1, height do
+--         local item = craftList:addFrame("y"..i)
+--             :addLayout(layoutsFolder .. "item.xml")
+--             :setBackground(colors.gray)
+--             :setSize("parent.w", 1)
+--             :setPosition(1, i)
 
-        item:getObject("count")
-            :setText("CRAFT")
-            :setSize(5, 1)
-            :setPosition("parent.w - " .. 5)
-    end
+--         item:getObject("count")
+--             :setText("CRAFT")
+--             :setSize(5, 1)
+--             :setPosition("parent.w - " .. 5)
+--     end
 
-    local uiCraftCache = {}
-    local position = 0
-    local visibleCount = 0
+--     local uiCraftCache = {}
+--     local position = 0
+--     local visibleCount = 0
 
-    local function updateItems()
-        for i = 1, height do
-            local index = i + position
-            local item = uiCraftCache[index]
+--     local function updateItems()
+--         for i = 1, height do
+--             local index = i + position
+--             local item = uiCraftCache[index]
 
-            local name = ""
-            if item and item.visible then
-                name = item.name
-            end
+--             local name = ""
+--             if item and item.visible then
+--                 name = item.name
+--             end
 
-            local itemFrame = craftList:getObject("y" .. i)
+--             local itemFrame = craftList:getObject("y" .. i)
 
-            if itemFrame then
-                local color = index % 2 == 1 and colors.white or colors.lightGray
+--             if itemFrame then
+--                 local color = index % 2 == 1 and colors.white or colors.lightGray
 
-                itemFrame:getObject("name")
-                    :setText(name)
-                    :setForeground(color)
+--                 itemFrame:getObject("name")
+--                     :setText(name)
+--                     :setForeground(color)
 
-                itemFrame:getObject("count")
-                    :setForeground(color)
-            end
-        end
-    end
+--                 itemFrame:getObject("count")
+--                     :setForeground(color)
+--             end
+--         end
+--     end
 
-    craftList:onScroll(function(list, ev, dir, x, y) 
-        local floor = math.max(0, visibleCount - height)
-        position = math.min(math.max(position + dir, 0), floor)
-        updateItems()
-    end)
+--     craftList:onScroll(function(list, ev, dir, x, y) 
+--         local floor = math.max(0, visibleCount - height)
+--         position = math.min(math.max(position + dir, 0), floor)
+--         updateItems()
+--     end)
 
-    local function searchBasedSort(search)
-        return function(a, b)
-            local isSearch = search ~= ""
-            local aMatch = string.find(a.name:lower(), search)
-            local bMatch = string.find(b.name:lower(), search)
+--     local function searchBasedSort(search)
+--         return function(a, b)
+--             local isSearch = search ~= ""
+--             local aMatch = string.find(a.name:lower(), search)
+--             local bMatch = string.find(b.name:lower(), search)
 
-            if aMatch and not bMatch then
-                return true
-            elseif not aMatch and bMatch and isSearch then
-                return false
-            else
-                return a.name:lower() < b.name:lower()
-            end
-        end
-    end
+--             if aMatch and not bMatch then
+--                 return true
+--             elseif not aMatch and bMatch and isSearch then
+--                 return false
+--             else
+--                 return a.name:lower() < b.name:lower()
+--             end
+--         end
+--     end
 
-    local function applySortAndVisibility()
-        local search = searchField:getValue():lower()
+--     local function applySortAndVisibility()
+--         local search = searchField:getValue():lower()
 
-        table.sort(uiCraftCache, searchBasedSort(search))
+--         table.sort(uiCraftCache, searchBasedSort(search))
 
-        visibleCount = 0
+--         visibleCount = 0
 
-        for y, item in pairs(uiCraftCache) do
-            local visibility = true
+--         for y, item in pairs(uiCraftCache) do
+--             local visibility = true
 
-            if search ~= "" then
-                visibility = string.find(item.name:lower(), search) ~= nil
-            end
+--             if search ~= "" then
+--                 visibility = string.find(item.name:lower(), search) ~= nil
+--             end
 
-            if visibility then
-                visibleCount = visibleCount + 1
-            end
+--             if visibility then
+--                 visibleCount = visibleCount + 1
+--             end
 
-            item.visible = visibility
-        end
+--             item.visible = visibility
+--         end
 
-        updateItems()
-    end
+--         updateItems()
+--     end
 
-    local function addItem(craftID)
-        for _, item in pairs(uiCraftCache) do
-            if item.id == craftID then
-                return
-            end
-        end
+--     local function addItem(craftID)
+--         for _, item in pairs(uiCraftCache) do
+--             if item.id == craftID then
+--                 return
+--             end
+--         end
 
-        local name = craft.getRecipe(craftID).n
+--         local name = craft.getRecipe(craftID).n
 
-        table.insert(uiCraftCache, {
-            id = craftID,
-            name = name,
-            visible = true,
-        })
-    end
+--         table.insert(uiCraftCache, {
+--             id = craftID,
+--             name = name,
+--             visible = true,
+--         })
+--     end
 
-    local function refresh()
-        uiInvCache = {}
+--     local function refresh()
+--         uiInvCache = {}
 
-        -- Adding new items
-        local yielder = utils.yielder()
-        for craftID, _ in pairs(craft.listCrafts()) do
-            addItem(craftID)
-            yielder.yield()
-        end
-    end
+--         -- Adding new items
+--         local yielder = utils.yielder()
+--         for craftID, _ in pairs(craft.listCrafts()) do
+--             addItem(craftID)
+--             yielder.yield()
+--         end
+--     end
 
-    refresh()
-    applySortAndVisibility()
+--     refresh()
+--     applySortAndVisibility()
 
-    searchField:onChange(function(self)
-        position = 0
-        applySortAndVisibility()
-    end)
-end
+--     searchField:onChange(function(self)
+--         position = 0
+--         applySortAndVisibility()
+--     end)
+-- end
 
+-- <!-- <input id="craftSearchField" default="Search..." x="1" y="1" width="parent.w" bg="lightGray"/> -->
+--         <!-- <button text="+" x="parent.w - 2" y="1" width="1" height="1" onClick="refreshCraft" bg="lightGray"/>
+--         <button text="R" x="parent.w" y="1" width="1" height="1" onClick="refreshCraft" bg="lightGray"/> -->
+--         <!-- <frame id="craftList" x="1" y="2" width="parent.w + 1" height="parent.h - 2" bg="gray" scrollable="false" zIndex="1">
+
+--         </frame> -->
 
 return basalt.autoUpdate
