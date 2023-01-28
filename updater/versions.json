@@ -36,7 +36,8 @@
         },
         "0.1.5": {
             "dependsOn": "0.1.3",
-            "filesToDownload": [                
+            "filesToDownload": [            
+                "lib/basalt.lua",    
                 "src/layouts/main.xml",
                 "src/ui.lua"
             ]
