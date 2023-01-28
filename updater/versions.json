@@ -1,9 +1,14 @@
 {
     "latest": "0.1.0",
     "versions": {
-        "0.1.0": "663a3ad8e8f36e19b401e5682caec5e7d3c7cce6"
+        "0.1.0": "663a3ad8e8f36e19b401e5682caec5e7d3c7cce6",
+        "0.1.1": ""
     },
     "updates": {
-
+        "0.1.1": {
+            "filesToDownload": [
+                "mics.lua"
+            ]
+        }
     }
 }

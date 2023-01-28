@@ -17,6 +17,27 @@ if not turtle or not term.isColor() then
     printError("Basic or non-turtle computers are not supported!")
 end
 
+print("Checking for updates...")
+
+local installerLink = "https://raw.githubusercontent.com/TheJebForge/mics/master/updater/installer.lua"
+
+local installerFile, err = http.get(installerLink)
+
+if not installerFile then
+    printError("Could not run updater", err)
+    sleep(3)
+end
+
+local installer, err = load(installerFile.readAll())
+installerFile.close()
+
+if not installer then
+    printError("Could not load updater", err)
+    sleep(3)
+else
+    installer()
+end
+
 print("Device discovery report\n")
 
 local devices = require("src.devices")
