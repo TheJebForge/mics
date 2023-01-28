@@ -77,6 +77,8 @@ if not localVersion then
 
     local function downloadFile(path)
         local link = "https://raw.githubusercontent.com/TheJebForge/mics/master/" .. path
+
+        term.setTextColor(colors.lightGray)
         write(path .. "...")
 
         local response, err = http.get(link)
@@ -98,6 +100,7 @@ if not localVersion then
         file.close()
 
         print("OK")
+        term.setTextColor(colors.white)
 
         return true
     end
