@@ -2,6 +2,7 @@ local utils = require("src.utils")
 local events = require("src.events")
 local devices = require("src.devices")
 local config = require("src.config")
+local tags = require("src.tags")
 
 local expectModule = require "cc.expect"
 local expect, field = expectModule.expect, expectModule.field
@@ -10,7 +11,6 @@ local export = {}
 
 local oldInvCache = {}
 local invCache = {}
-local tagCache = {}
 local refreshing = false
 
 function export.formatItemID(item)
@@ -20,20 +20,6 @@ function export.formatItemID(item)
         return (item.name or "") .. ":" .. (item.nbt or "")
     else
         return (item.name or "")
-    end
-end
-
-local function addTags(itemID, item)
-    if item.tags then
-        for tag, _ in pairs(item.tags) do
-            if tagCache[tag] then
-                tagCache[tag][itemID] = true
-            else
-                tagCache[tag] = {
-                    [itemID] = true
-                }
-            end
-        end
     end
 end
 
@@ -60,8 +46,7 @@ local function scanInventory(_, index, continue)
 
                     detailedItem.places = { [name] = { [slot] = item.count } }
                     invCache[itemID] = detailedItem
-
-                    addTags(itemID, detailedItem)
+                    tags.addTags(detailedItem)
                 end
             end
             
@@ -354,7 +339,7 @@ local function pullItems(count, infoMethod, pullMethod)
         events.queue("item_changed", itemID, item.count - totalPushed, item.count)
     else
         events.queue("item_added", itemID, item)
-        addTags(itemID, item)
+        tags.addTags(item)
     end
 
     if count > 0 then
@@ -406,22 +391,6 @@ function export.pullItems(source, sourceSlot, count)
     end
 
     return pullItems(count, infoMethod, pullMethod)
-end
-
-function export.findItemsByTag(tag)
-    local results = {}
-
-    if tagCache[tag] then
-        for id, _ in pairs(tagCache[tag]) do
-            local item = invCache[id]
-
-            if item then
-                results[id] = item.count
-            end
-        end
-    end
-
-    return results
 end
 
 function export.findCheapestItemByTag(tag)

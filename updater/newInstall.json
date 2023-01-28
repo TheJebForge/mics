@@ -1,0 +1,26 @@
+{
+    "directories": [
+        "src",
+        "src/craft",
+        "lib",
+        "tags",
+        "updater",
+        "recipes"
+    ],
+    "files": [
+        "mics.lua",
+        "recipes/switchcraft.json",
+        "tags/switchcraft.json",
+        "src/config.lua",
+        "src/devices.lua",
+        "src/events.lua",
+        "src/inv.lua",
+        "src/log.lua",
+        "src/tags.lua",
+        "src/ui.lua",
+        "src/utils.lua",
+        "src/craft/init.lua",
+        "src/layouts/item.xml",
+        "src/layouts/main.xml"
+    ]
+}

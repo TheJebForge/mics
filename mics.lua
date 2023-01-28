@@ -56,12 +56,12 @@ if devices.manipulatorCount > 0 and devices.wireless then
     end
 end
 
-if devices.workbench then
-    print("Workbench found")
-else
-    printError("No workbench found. Storage system will not be able to craft anything")
-    sleep(2)
-end
+-- if devices.workbench then
+--     print("Workbench found")
+-- else
+--     printError("No workbench found. Storage system will not be able to craft anything")
+--     sleep(2)
+-- end
 
 print(devices.monitorCount .. " monitors found")
 print(devices.inventoryCount .. " inventories found\n")
@@ -74,27 +74,8 @@ local inv = require("src.inv")
 print("Indexing inventories...")
 inv.refresh()
 
-events.listen("inv_index_done", function()
-    -- textutils.pagedPrint(
-    --     textutils.serialise(inv.listItems())
-    -- )
-end)
-
-print("Loading recipes...")
-local craft = require("src.craft")
-
--- textutils.pagedPrint(
---     textutils.serialize(
---         craft.calculateCraft("minecraft:oak_planks", 64)
---     )
--- )
-
-events.listen("inv_index_done", function()
-    inv.pullItems("introspection", 1, 64)
-end)
-
 -- Actually starting processes
 parallel.waitForAny(
-    events.processEvents,
-    require("src.ui")
+    events.processEvents
+    --require("src.ui")
 )

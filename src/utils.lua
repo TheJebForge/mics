@@ -74,4 +74,193 @@ function export.yielder()
     return yielder
 end
 
+function export.keyOfBiggestValue(tab)
+    expect(1, tab, "table")
+
+    local maxKey = next(tab)
+
+    if maxKey then
+        for key, val in pairs(tab) do
+            local num = tonumber(val) or 0
+
+            if val > tab[maxKey] then
+                maxKey = key
+            end
+        end
+
+        return maxKey
+    end
+end
+
+function export.keyOfSmallestValue(tab, valueFunc)
+    expect(1, tab, "table")
+    valueFunc = type(valueFunc) == "function" and valueFunc or function(a)
+        return tonumber(a)
+    end
+
+    local minKey = next(tab)
+
+    if minKey then
+        for key, val in pairs(tab) do
+            local num = valueFunc(val) or 0
+
+            if num < valueFunc(tab[minKey]) then
+                minKey = key
+            end
+        end
+
+        return minKey
+    end
+end
+
+function export.queue()
+    local queue = {}
+
+    function queue.push(item)
+        queue[#queue + 1] = item
+    end
+
+    function queue.peek()
+        return queue[#queue]
+    end
+
+    function queue.pop()
+        local item = queue[#queue]
+
+        queue[#queue] = nil
+        
+        return item
+    end
+
+    function queue.isEmpty()
+        return queue.peek() == nil
+    end
+
+    return queue
+end
+
+function export.uniqueQueue(idFunc, noReorder)
+    expect(1, idFunc, "function")
+
+    local queue = {
+        items = {},
+        ids = {}
+    }
+
+    local function reorder(id)
+        local bottom = {}
+        local top = {}
+
+        for _, item in pairs(queue.items) do
+            local itemID = idFunc(item)
+
+            if itemID == id then
+                table.insert(top, item)
+            else
+                table.insert(bottom, item)
+            end
+        end
+
+        queue.items = bottom
+
+        for _, item in pairs(top) do
+            table.insert(queue.items, item)
+        end
+    end
+
+    function queue.push(item)
+        local itemID = idFunc(item)
+
+        if (queue.ids[itemID] or 0) > 0 then
+            if not noReorder then
+                reorder(itemID)
+            end
+        else
+            queue.items[#queue.items + 1] = item
+            queue.ids[itemID] = (queue.ids[itemID] or 0) + 1
+        end
+    end
+
+    function queue.peek()
+        return queue.items[#queue.items]
+    end
+
+    function queue.pop()
+        local item = queue.items[#queue.items]
+
+        queue.items[#queue.items] = nil
+
+        if item then
+            local itemID = idFunc(item)
+
+            queue.ids[itemID] = (queue.ids[itemID] or 0) - 1
+        end
+        
+        return item
+    end
+
+    function queue.isEmpty()
+        return queue.peek() == nil
+    end
+
+    return queue
+end
+
+function export.reverseTable(x)
+    rev = {}
+    for i=#x, 1, -1 do
+        rev[#rev+1] = x[i]
+    end
+    return rev
+end
+
+function export.maxTableValue(tab)
+    expect(1, tab, "table")
+    local biggestKey = export.keyOfBiggestValue(tab)
+
+    if biggestKey then
+        return tab[biggestKey]
+    end
+end
+
+function export.minTableValue(tab)
+    expect(1, tab, "table")
+    local smallestKey = export.keyOfSmallestValue(tab)
+
+    if smallestKey then
+        return tab[smallestKey]
+    end
+end
+
+function export.tableAll(tab, func)
+    expect(1, tab, "table")
+    expect(2, func, "function")
+
+    for i, v in pairs(tab) do
+        if not func(i, v) then
+            return false
+        end
+    end
+
+    return true
+end
+
+function export.tableClone(tab, depthLimit, depth)
+    expect(1, tab, "table")
+    depth = depth or 0
+    depthLimit = depthLimit or 4
+
+    local newTable = {}
+
+    for i, v in pairs(tab) do
+        if type(v) == "table" and depth < depthLimit then
+            newTable[i] = export.tableClone(v, depthLimit, depth + 1)
+        else
+            newTable[i] = v
+        end
+    end
+
+    return newTable
+end
+
 return export
