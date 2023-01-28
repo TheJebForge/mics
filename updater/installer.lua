@@ -1,5 +1,4 @@
 local versionsLink = "https://raw.githubusercontent.com/TheJebForge/mics/master/updater/versions.json"
-local newInstallLink = "https://raw.githubusercontent.com/TheJebForge/mics/master/updater/newInstall.json"
 
 local function printError(...)
     term.setTextColor(colors.red)
@@ -44,6 +43,9 @@ end
 if not localVersion then
     print("Latest version is " .. versions.latest)
 
+    local commit = versions.versions[versions.latest]
+    local newInstallLink = "https://raw.githubusercontent.com/TheJebForge/mics/" .. commit .. "/updater/newInstall.json"
+
     print("Getting list of directories and files")
     local newInstallFile, err = http.get(newInstallLink)
 
@@ -76,7 +78,7 @@ if not localVersion then
     print("Downloading files...")
 
     local function downloadFile(path)
-        local link = "https://raw.githubusercontent.com/TheJebForge/mics/master/" .. path
+        local link = "https://raw.githubusercontent.com/TheJebForge/mics/" .. commit .. "/" .. path
 
         term.setTextColor(colors.lightGray)
         write(path .. "...")
